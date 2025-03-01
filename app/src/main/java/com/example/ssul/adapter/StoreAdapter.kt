@@ -14,10 +14,11 @@ import com.example.ssul.model.FavoriteModel
 import com.example.ssul.model.StoreModel
 
 class StoreAdapter(
-    private var storeItems: MutableList<StoreModel>,
+    private var storeItems: List<StoreModel>,
     private var favoriteItems: List<FavoriteModel>,
     private val onFavoriteClicked: (Int) -> Unit,
-    private val onStoreClicked: (Int) -> Unit
+    private val onStoreClicked: (Int) -> Unit,
+    private val isFavoriteMode: Boolean = false
 ) : RecyclerView.Adapter<StoreAdapter.StoreViewHolder>() {
 
     inner class StoreViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -41,12 +42,10 @@ class StoreAdapter(
             storeText.text = item.name
             locationText.text = item.address
 
-            // 즐겨찾기 상태 조회
-            val isFavorite = favoriteItems.any { it.storeId == item.id && it.isFavorite }
 
             // 즐겨찾기 가시성 조정
             favoriteButton.setImageResource(
-                if (isFavorite) R.drawable.favorite_clicked else R.drawable.favorite_non_clicked
+                if (item.isFavorite) R.drawable.favorite_clicked else R.drawable.favorite_non_clicked
             )
 
             // 즐겨찾기 클릭 처리
@@ -100,13 +99,26 @@ class StoreAdapter(
 
     // 가게 리스트 업데이트
     fun updateItems(newItems: List<StoreModel>) {
-        storeItems = newItems.toMutableList()
+        storeItems = applyFavoritesToItems(newItems, favoriteItems)
+        if (isFavoriteMode) { // FavoriteFragment
+            storeItems = storeItems.filter { it.isFavorite }
+        }
         notifyDataSetChanged()
     }
 
     // 즐겨찾기 상태 업데이트
     fun updateFavorites(favorites: List<FavoriteModel>) {
         favoriteItems = favorites
+        storeItems = applyFavoritesToItems(storeItems, favoriteItems)
+        if (isFavoriteMode) { // FavoriteFragment
+            storeItems = storeItems.filter { it.isFavorite }
+        }
         notifyDataSetChanged()
+    }
+
+    private fun applyFavoritesToItems(storeItems: List<StoreModel>, favoriteItems: List<FavoriteModel>): List<StoreModel> {
+        return storeItems.map { store ->
+            store.copy(isFavorite = favoriteItems.any { favorite -> favorite.storeId == store.id && favorite.isFavorite })
+        }
     }
 }
