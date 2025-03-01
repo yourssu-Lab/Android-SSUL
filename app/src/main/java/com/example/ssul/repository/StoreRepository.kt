@@ -1,6 +1,5 @@
 package com.example.ssul.repository
 
-import android.util.Log
 import com.example.ssul.api.RetrofitClient
 import com.example.ssul.api.collegeCodeMap
 import com.example.ssul.api.degreeCodeMap
@@ -10,16 +9,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class StoreRepository {
-    suspend fun getStores(college: String, degree: String): MutableList<StoreModel> {
-        return withContext(Dispatchers.IO) {
-            try {
-                val collegeCode = collegeCodeMap[college] ?: throw IllegalArgumentException("Unknown college name: $college")
-                val degreeCode = degreeCodeMap[degree] ?: throw IllegalArgumentException("Unknown degree name: $degree")
+    suspend fun getStores(college: String, degree: String): Result<MutableList<StoreModel>> =
+        withContext(Dispatchers.IO) {
+            val collegeCode = collegeCodeMap[college]
+                ?: return@withContext Result.failure(IllegalArgumentException("Unknown college name: $college"))
+            val degreeCode = degreeCodeMap[degree]
+                ?: return@withContext Result.failure(IllegalArgumentException("Unknown degree name: $degree"))
 
+            runCatching {
                 val response = RetrofitClient.apiService.getStores(collegeCode, degreeCode).execute()
                 if (response.isSuccessful) {
                     val storeResponses = response.body() ?: emptyList()
-
                     storeResponses.map { storeResponse ->
                         StoreModel(
                             id = storeResponse.id,
@@ -33,31 +33,25 @@ class StoreRepository {
                         )
                     }.toMutableList()
                 } else {
-                    mutableListOf()
+                    throw Exception("Failed to fetch stores: ${response.errorBody()?.string()}")
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                mutableListOf()
             }
         }
-    }
-}
 
-class StoreInfoRepository {
-    suspend fun getStoreInfo(storeId: Int, college: String, degree: String): StoreInfoModel {
-        return withContext(Dispatchers.IO) {
-            try {
-                val collegeCode = collegeCodeMap[college] ?: throw IllegalArgumentException("Unknown college name: $college")
-                val degreeCode = degreeCodeMap[degree] ?: throw IllegalArgumentException("Unknown degree name: $degree")
+    suspend fun getStoreInfo(storeId: Int, college: String, degree: String): Result<StoreInfoModel> =
+        withContext(Dispatchers.IO) {
+            val collegeCode = collegeCodeMap[college]
+                ?: return@withContext Result.failure(IllegalArgumentException("Unknown college name: $college"))
+            val degreeCode = degreeCodeMap[degree]
+                ?: return@withContext Result.failure(IllegalArgumentException("Unknown degree name: $degree"))
 
+            runCatching {
                 val response = RetrofitClient.apiService.getStoreInfo(storeId, collegeCode, degreeCode).execute()
                 if (response.isSuccessful) {
-                    val storeResponse = response.body() ?: throw java.lang.IllegalArgumentException("Invalid Store Response")
+                    val storeResponse = response.body() ?: throw IllegalArgumentException("Invalid Store Response")
                     val associationTarget = collegeCodeMap.entries.find { it.value == storeResponse.associationInfo?.target }?.key
                         ?: degreeCodeMap.entries.find { it.value == storeResponse.associationInfo?.target }?.key
                         ?: "정보 없음"
-
-                    Log.d("StoreInfo", "API Response: $storeResponse")
 
                     StoreInfoModel(
                         id = storeResponse.id,
@@ -77,18 +71,6 @@ class StoreInfoRepository {
                 } else {
                     throw IllegalArgumentException("Failed to fetch store info: ${response.errorBody()?.string()}")
                 }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                StoreInfoModel(
-                    id = 0,
-                    name = "",
-                    isAssociated = false,
-                    address = "정보 없음",
-                    contact = "정보 없음",
-                    associationInfo = "정보 없음" to "정보 없음",
-                    menus = emptyList()
-                )
             }
         }
-    }
 }

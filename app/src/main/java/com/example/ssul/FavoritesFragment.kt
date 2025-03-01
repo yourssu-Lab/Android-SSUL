@@ -305,6 +305,11 @@ class FavoritesFragment : Fragment() {
         // 학과 클릭 로직 처리 + 즐겨찾기 가게 필터링 + 즐겨찾기 토글(아이템 삭제)
     }
 
+    override fun onResume() {
+        super.onResume()
+
+    }
+
     private fun setupViews(view: View) {
         degreeTextView = view.findViewById(R.id.degree_text)
         setDegreeButton = view.findViewById(R.id.set_degree_button)
@@ -325,7 +330,7 @@ class FavoritesFragment : Fragment() {
 
     private fun setupAdapters() {
         storeAdapter = StoreAdapter(
-            storeItems = storeViewModel.storeItems.value ?: mutableListOf(),
+            storeItems = storeViewModel.storeItems.value ?: emptyList(),
             favoriteItems = favoriteViewModel.favoriteState.value ?: emptyList(),
             onFavoriteClicked = { storeId ->
                 favoriteViewModel.toggleFavorite(storeId)

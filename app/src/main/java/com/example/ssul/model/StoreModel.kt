@@ -8,7 +8,8 @@ data class StoreModel(
     val isFilterDateChecked: Boolean,           // date 필터 선택 여부
     val isFilterEfficiencyChecked: Boolean,     // efficiency 필터 선택 여부
     val imageUrl: String,                       // Store 이미지 리소스 ID
-    val isAssociated: Boolean                   // partner 필터 선택 여부
+    val isAssociated: Boolean,                  // partner 필터 선택 여부
+    val isFavorite: Boolean = false
 )
 
 data class StoreInfoModel(

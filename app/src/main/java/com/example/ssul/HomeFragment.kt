@@ -451,7 +451,7 @@ class HomeFragment : Fragment() {
 
     private fun setupAdapters() {
         storeAdapter = StoreAdapter(
-            storeItems = storeViewModel.storeItems.value ?: mutableListOf(),
+            storeItems = storeViewModel.storeItems.value ?: emptyList(),
             favoriteItems = favoriteViewModel.favoriteState.value ?: emptyList(),
             onFavoriteClicked = { storeId ->
                 favoriteViewModel.toggleFavorite(storeId)
