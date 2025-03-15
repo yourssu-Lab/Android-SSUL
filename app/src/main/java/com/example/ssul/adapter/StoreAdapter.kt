@@ -117,8 +117,9 @@ class StoreAdapter(
     }
 
     private fun applyFavoritesToItems(storeItems: List<StoreModel>, favoriteItems: List<FavoriteModel>): List<StoreModel> {
+        val favoriteMap = favoriteItems.associateBy { it.storeId }
         return storeItems.map { store ->
-            store.copy(isFavorite = favoriteItems.any { favorite -> favorite.storeId == store.id && favorite.isFavorite })
+            store.copy(isFavorite = favoriteMap[store.id]?.isFavorite ?: false)
         }
     }
 }

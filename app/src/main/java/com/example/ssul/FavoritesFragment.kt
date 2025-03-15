@@ -305,11 +305,6 @@ class FavoritesFragment : Fragment() {
         // 학과 클릭 로직 처리 + 즐겨찾기 가게 필터링 + 즐겨찾기 토글(아이템 삭제)
     }
 
-    override fun onResume() {
-        super.onResume()
-
-    }
-
     private fun setupViews(view: View) {
         degreeTextView = view.findViewById(R.id.degree_text)
         setDegreeButton = view.findViewById(R.id.set_degree_button)
