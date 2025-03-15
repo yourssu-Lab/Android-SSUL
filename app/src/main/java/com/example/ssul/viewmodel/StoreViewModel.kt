@@ -7,17 +7,20 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.ssul.model.FilterModel
+import com.example.ssul.model.StoreInfoModel
 import com.example.ssul.model.StoreModel
 import com.example.ssul.repository.StoreRepository
 import kotlinx.coroutines.launch
 
 class StoreViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository = StoreRepository()
+    private val storeRepository = StoreRepository()
     private val _allStores = MutableLiveData<MutableList<StoreModel>>()
     private val _filteredStores = MutableLiveData<MutableList<StoreModel>>()
     val storeItems: LiveData<MutableList<StoreModel>> get() = _filteredStores
-    // FavoriteFragment 위해 즐겨찾기 아이템 추가? var favStoreItems
+
+    private val _storeInfo = MutableLiveData<StoreInfoModel>()
+    val storeInfo: LiveData<StoreInfoModel> get() = _storeInfo
 
     private var college: String = ""
     private var degree: String = ""
@@ -37,9 +40,29 @@ class StoreViewModel(application: Application) : AndroidViewModel(application) {
     // 가게 데이터 불러오기
     private fun loadStores() {
         viewModelScope.launch {
-            val stores = repository.getStores(college, degree)
-            _allStores.value = stores
-            _filteredStores.value = stores
+            storeRepository.getStores(college, degree)
+                .onSuccess { stores ->
+                    _allStores.value = stores
+                    _filteredStores.value = stores
+                }
+                .onFailure { error ->
+                    error.printStackTrace()
+                    _allStores.value = mutableListOf()
+                    _filteredStores.value = mutableListOf()
+                }
+        }
+    }
+
+    // 가게 세부 데이터 불러오기
+    fun loadStoreInfo(storeId: Int) {
+        viewModelScope.launch {
+            storeRepository.getStoreInfo(storeId, college, degree)
+                .onSuccess { info ->
+                    _storeInfo.value = info
+                }
+                .onFailure { error ->
+                    error.printStackTrace()
+                }
         }
     }
 
